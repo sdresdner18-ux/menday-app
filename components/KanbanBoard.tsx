@@ -28,6 +28,10 @@ interface Props {
 }
 
 export default function KanbanBoard({ initialOrders, stages }: Props) {
+  if (stages.length === 0) {
+    return null;
+  }
+
   const archiveStage = getArchiveStage(stages);
   const paymentStage = getPaymentStage(stages);
   const columns = getBoardColumnStages(stages);

@@ -146,12 +146,22 @@ export function getStageLabel(
   return getStageBySlug(stages, slug)?.label ?? slug;
 }
 
+const FALLBACK_ARCHIVE_STAGE: SerializedWorkflowStage = {
+  id: "fallback-archive",
+  slug: "completed",
+  label: "Completed",
+  position: 999,
+  stageType: "Archive",
+  color: "emerald",
+};
+
 export function getArchiveStage(
   stages: SerializedWorkflowStage[]
 ): SerializedWorkflowStage {
   return (
     stages.find((s) => s.stageType === "Archive") ??
-    stages[stages.length - 1]
+    stages[stages.length - 1] ??
+    FALLBACK_ARCHIVE_STAGE
   );
 }
 
