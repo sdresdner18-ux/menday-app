@@ -37,6 +37,7 @@ export interface Order {
   status: string;
   paymentReceived: boolean;
   paymentReceivedAt: string | null;
+  trackingToken: string;
   teamMembers?: TeamMember[];
   createdAt: string;
   updatedAt: string;

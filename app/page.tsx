@@ -7,20 +7,24 @@ import KanbanBoard from "@/components/KanbanBoard";
 import AIParser from "@/components/AIParser";
 import NewOrderModal from "@/components/NewOrderModal";
 import { orderWithCustomerInclude, orderWithTeamInclude, serializeOrder } from "@/lib/customers";
-import { getAppShellOrderStats, getCachedWorkflowStages } from "@/lib/appShellData";
+import { getAppShellContext } from "@/lib/appShellData";
 import { getArchiveStage } from "@/lib/workflow";
 
 async function getPageData(): Promise<{
   orders: Order[];
   stages: WorkflowStage[];
-  orderStats: Awaited<ReturnType<typeof getAppShellOrderStats>>;
+  orderStats: Awaited<ReturnType<typeof getAppShellContext>>["orderStats"];
+  shopSettings: Awaited<ReturnType<typeof getAppShellContext>>["shopSettings"] | null;
 }> {
   let stages: WorkflowStage[] = [];
   let orderStats = { active: 0, archived: 0, urgent: 0, waitingFiles: 0 };
+  let shopSettings: Awaited<ReturnType<typeof getAppShellContext>>["shopSettings"] | null = null;
 
   try {
-    stages = await getCachedWorkflowStages();
-    orderStats = await getAppShellOrderStats(stages);
+    const context = await getAppShellContext();
+    stages = context.stages;
+    orderStats = context.orderStats;
+    shopSettings = context.shopSettings;
   } catch (error) {
     console.error("Failed to load workflow stages:", error);
   }
@@ -45,16 +49,16 @@ async function getPageData(): Promise<{
     }
   }
 
-  return { orders, stages, orderStats };
+  return { orders, stages, orderStats, shopSettings };
 }
 
 export default async function HomePage() {
-  const { orders, stages, orderStats } = await getPageData();
+  const { orders, stages, orderStats, shopSettings } = await getPageData();
   const archiveSlug = stages.length ? getArchiveStage(stages).slug : "completed";
   const activeOrders = orders.filter((o) => o.status !== archiveSlug);
 
   return (
-    <AppShell stages={stages} orderStats={orderStats}>
+    <AppShell stages={stages} orderStats={orderStats} shopSettings={shopSettings}>
       <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="section-title mb-1">Production Board</p>

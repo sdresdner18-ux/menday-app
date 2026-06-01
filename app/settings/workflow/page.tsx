@@ -8,6 +8,7 @@ export default async function WorkflowSettingsPage() {
   let shell = {
     stages: [] as Awaited<ReturnType<typeof getAppShellContext>>["stages"],
     orderStats: { active: 0, archived: 0, urgent: 0, waitingFiles: 0 },
+    shopSettings: null as Awaited<ReturnType<typeof getAppShellContext>>["shopSettings"] | null,
   };
 
   try {
@@ -17,7 +18,7 @@ export default async function WorkflowSettingsPage() {
   }
 
   return (
-    <AppShell stages={shell.stages} orderStats={shell.orderStats}>
+    <AppShell stages={shell.stages} orderStats={shell.orderStats} shopSettings={shell.shopSettings}>
       <WorkflowEditor initialStages={shell.stages} />
     </AppShell>
   );

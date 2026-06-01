@@ -13,30 +13,52 @@ const LEGACY_STATUS_TO_SLUG = {
   Completed: "completed",
 };
 
+const LEGACY_DEFAULT_STAGE_LABELS = {
+  new: "New",
+  "needs-clarification": "Needs Clarification",
+  "waiting-for-files": "Waiting for Files",
+  "in-progress": "In Progress",
+  packed: "Packed",
+  "awaiting-payment": "Awaiting Payment",
+  completed: "Completed",
+};
+
 const DEFAULT_WORKFLOW_STAGES = [
-  { slug: "new", label: "New", position: 0, stageType: "Normal", color: "zinc" },
   {
-    slug: "needs-clarification",
-    label: "Needs Clarification",
-    position: 1,
+    slug: "new",
+    label: "Order Received",
+    position: 0,
     stageType: "Normal",
-    color: "amber",
+    color: "zinc",
   },
   {
     slug: "waiting-for-files",
-    label: "Waiting for Files",
-    position: 2,
+    label: "Files Received",
+    position: 1,
     stageType: "Normal",
     color: "yellow",
   },
   {
     slug: "in-progress",
-    label: "In Progress",
-    position: 3,
+    label: "In Production",
+    position: 2,
     stageType: "Normal",
     color: "blue",
   },
-  { slug: "packed", label: "Packed", position: 4, stageType: "Normal", color: "teal" },
+  {
+    slug: "finishing",
+    label: "Finishing",
+    position: 3,
+    stageType: "Normal",
+    color: "violet",
+  },
+  {
+    slug: "packed",
+    label: "Ready / Packed",
+    position: 4,
+    stageType: "Normal",
+    color: "teal",
+  },
   {
     slug: "awaiting-payment",
     label: "Awaiting Payment",
@@ -53,12 +75,54 @@ const DEFAULT_WORKFLOW_STAGES = [
   },
 ];
 
-async function main() {
-  const stageCount = await prisma.workflowStage.count();
-  if (stageCount === 0) {
+async function syncDefaultStages() {
+  const existing = await prisma.workflowStage.findMany();
+  const existingBySlug = new Map(existing.map((stage) => [stage.slug, stage]));
+
+  if (existing.length === 0) {
     await prisma.workflowStage.createMany({ data: DEFAULT_WORKFLOW_STAGES });
     console.log(`Seeded ${DEFAULT_WORKFLOW_STAGES.length} workflow stages.`);
+    return;
   }
+
+  for (const defaults of DEFAULT_WORKFLOW_STAGES) {
+    const current = existingBySlug.get(defaults.slug);
+
+    if (!current) {
+      await prisma.workflowStage.create({ data: defaults });
+      console.log(`Added stage ${defaults.slug} (${defaults.label}).`);
+      continue;
+    }
+
+    const legacyLabel = LEGACY_DEFAULT_STAGE_LABELS[defaults.slug];
+    const labelStillDefault =
+      current.label === defaults.label ||
+      (legacyLabel !== undefined && current.label === legacyLabel);
+
+    if (!labelStillDefault) continue;
+
+    if (
+      current.label !== defaults.label ||
+      current.position !== defaults.position ||
+      current.color !== defaults.color ||
+      current.stageType !== defaults.stageType
+    ) {
+      await prisma.workflowStage.update({
+        where: { id: current.id },
+        data: {
+          label: defaults.label,
+          position: defaults.position,
+          color: defaults.color,
+          stageType: defaults.stageType,
+        },
+      });
+      console.log(`Updated stage ${defaults.slug} -> ${defaults.label}.`);
+    }
+  }
+}
+
+async function main() {
+  await syncDefaultStages();
 
   const stages = await prisma.workflowStage.findMany();
   const labelBySlug = Object.fromEntries(stages.map((s) => [s.slug, s.label]));

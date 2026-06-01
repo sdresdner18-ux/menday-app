@@ -32,19 +32,27 @@ import { useRouter } from "next/navigation";
 import CustomerSelect, { CustomerFieldValue } from "@/components/CustomerSelect";
 import { formatPhoneDisplay, formatPhoneInput } from "@/lib/messaging";
 import OrderTeamMembers from "@/components/OrderTeamMembers";
+import TrackingLinkCard from "@/components/TrackingLinkCard";
 import { formatMoney, lineAmount } from "@/lib/currency";
 
 import type { AppShellOrderStats } from "@/lib/appShellData";
+import type { SerializedShopSettings } from "@/lib/shopSettings-shared";
 
 interface Props {
   data: OrderDetailData;
   stages: WorkflowStage[];
   orderStats: AppShellOrderStats;
+  shopSettings: SerializedShopSettings;
 }
 
 type TabId = "details" | "invoice";
 
-export default function OrderDetailClient({ data: initialData, stages, orderStats }: Props) {
+export default function OrderDetailClient({
+  data: initialData,
+  stages,
+  orderStats,
+  shopSettings,
+}: Props) {
   const archiveStage = getArchiveStage(stages);
   const paymentStage = getPaymentStage(stages);
   const boardStages = getBoardColumnStages(stages);
@@ -233,7 +241,7 @@ export default function OrderDetailClient({ data: initialData, stages, orderStat
   }
 
   return (
-    <AppShell stages={stages} orderStats={orderStats}>
+    <AppShell stages={stages} orderStats={orderStats} shopSettings={shopSettings}>
       <Link
         href={order.status === archiveStage.slug ? "/archive" : "/"}
         className="mb-5 inline-flex items-center gap-1 text-sm font-semibold text-gray-500 transition-colors hover:text-violet-600 dark:text-gray-400 dark:hover:text-violet-300"
@@ -271,7 +279,7 @@ export default function OrderDetailClient({ data: initialData, stages, orderStat
       <div className="mx-auto grid max-w-5xl gap-6 lg:grid-cols-[1fr_320px]">
         <div className="space-y-6">
           {activeTab === "invoice" ? (
-            <OrderInvoice order={order} />
+            <OrderInvoice order={order} shopSettings={shopSettings} />
           ) : (
             <>
               <div className="glass-card overflow-hidden">
@@ -633,14 +641,26 @@ export default function OrderDetailClient({ data: initialData, stages, orderStat
                 </div>
               </div>
 
+              <TrackingLinkCard
+                trackingToken={order.trackingToken}
+                customerName={order.customerName}
+                customerPhone={order.customerPhone}
+                orderNumber={order.orderNumber}
+                projectType={order.projectType}
+              />
+
               <CustomerMessages
                 orderId={order.id}
+                trackingToken={order.trackingToken}
                 order={{
                   customerName: order.customerName,
                   customerPhone: order.customerPhone,
                   orderNumber: order.orderNumber,
                   projectType: order.projectType,
+                  unitPrice: order.unitPrice,
+                  quantity: order.quantity,
                 }}
+                shopSettings={shopSettings}
                 messages={initialData.orderMessages}
                 onAddPhone={focusCustomerPhone}
               />

@@ -10,13 +10,19 @@ import {
 import {
   downloadPdfBlob,
   generateInvoicePdf,
-  invoiceFilename,
   sharePdfBlob,
 } from "@/lib/generateInvoicePdf";
 import { formatMoney, lineAmount } from "@/lib/currency";
+import {
+  SerializedShopSettings,
+  formatShopAddress,
+  shopInvoiceFilename,
+} from "@/lib/shopSettings-shared";
+import { formatPaymentInstructions } from "@/lib/payment-shared";
 
 interface Props {
   order: Order;
+  shopSettings: SerializedShopSettings;
 }
 
 function formatDate(iso: string | null) {
@@ -34,18 +40,20 @@ function lineDescription(order: Order) {
   return parts.join(" — ");
 }
 
-export default function OrderInvoice({ order }: Props) {
+export default function OrderInvoice({ order, shopSettings }: Props) {
   const invoiceRef = useRef<HTMLDivElement>(null);
   const [generating, setGenerating] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
 
   const invoiceNumber = order.orderNumber ?? order.id.slice(-8).toUpperCase();
-  const filename = invoiceFilename(invoiceNumber);
+  const filename = shopInvoiceFilename(shopSettings, invoiceNumber);
+  const shopAddress = formatShopAddress(shopSettings);
   const shareTitle = `Invoice #${invoiceNumber} — ${order.customerName}`;
   const shareMessage = `Hi ${order.customerName}, please find attached invoice #${invoiceNumber} for ${lineDescription(order)}.`;
   const canWhatsApp =
     !!order.customerPhone && isValidPhone(order.customerPhone);
   const total = lineAmount(order.unitPrice, order.quantity);
+  const paymentInstructions = formatPaymentInstructions(shopSettings);
 
   async function createPdf() {
     const element = invoiceRef.current;
@@ -202,10 +210,36 @@ export default function OrderInvoice({ order }: Props) {
       >
         <div className="flex flex-wrap items-start justify-between gap-8 border-b border-gray-200 pb-8">
           <div>
-            <p className="text-2xl font-bold tracking-tight text-gray-900">
-              Mendy<span className="text-violet-600">.</span>
-            </p>
-            <p className="mt-1 text-sm text-gray-500">Custom manufacturing</p>
+            {shopSettings.logoDataUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={shopSettings.logoDataUrl}
+                alt={`${shopSettings.businessName} logo`}
+                className="mb-3 h-16 max-w-[220px] object-contain object-left"
+              />
+            ) : (
+              <p className="text-2xl font-bold tracking-tight text-gray-900">
+                {shopSettings.businessName}
+                <span className="text-violet-600">.</span>
+              </p>
+            )}
+            {shopSettings.tagline ? (
+              <p className="mt-1 text-sm text-gray-500">{shopSettings.tagline}</p>
+            ) : null}
+            {shopSettings.phone ? (
+              <p className="mt-2 text-sm text-gray-600">
+                {formatPhoneDisplay(shopSettings.phone)}
+              </p>
+            ) : null}
+            {shopSettings.email ? (
+              <p className="text-sm text-gray-600">{shopSettings.email}</p>
+            ) : null}
+            {shopSettings.website ? (
+              <p className="text-sm text-gray-600">{shopSettings.website}</p>
+            ) : null}
+            {shopAddress ? (
+              <p className="mt-2 whitespace-pre-line text-sm text-gray-600">{shopAddress}</p>
+            ) : null}
           </div>
           <div className="text-right">
             <p className="text-3xl font-bold tracking-tight text-gray-900">
@@ -306,8 +340,14 @@ export default function OrderInvoice({ order }: Props) {
           <p className="mt-2 text-sm text-gray-600">
             Payment due by {formatDate(order.deadline)} unless otherwise agreed.
           </p>
+          {paymentInstructions ? (
+            <p className="mt-3 text-sm font-semibold text-gray-900">
+              Pay here:{" "}
+              <span className="font-normal text-gray-700">{paymentInstructions}</span>
+            </p>
+          ) : null}
           <p className="mt-6 text-sm text-gray-500">
-            Thank you for your business.
+            {shopSettings.invoiceFooter?.trim() || "Thank you for your business."}
           </p>
         </div>
       </div>

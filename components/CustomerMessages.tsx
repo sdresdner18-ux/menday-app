@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import Link from "next/link";
+import { useMemo, useState } from "react";
 import { Order, OrderMessage, MessageChannel } from "@/lib/types";
 import {
   buildMessagePrefix,
@@ -9,10 +10,27 @@ import {
   formatPhoneDisplay,
   isValidPhone,
 } from "@/lib/messaging";
+import {
+  buildPaymentRequestMessage,
+  formatPaymentInstructions,
+  hasPaymentLink,
+} from "@/lib/payment-shared";
+import { buildTrackingMessage, buildTrackingUrl } from "@/lib/tracking-shared";
+import type { SerializedShopSettings } from "@/lib/shopSettings-shared";
 
 interface Props {
   orderId: string;
-  order: Pick<Order, "customerName" | "customerPhone" | "orderNumber" | "projectType">;
+  trackingToken: string;
+  order: Pick<
+    Order,
+    | "customerName"
+    | "customerPhone"
+    | "orderNumber"
+    | "projectType"
+    | "unitPrice"
+    | "quantity"
+  >;
+  shopSettings: Pick<SerializedShopSettings, "paymentLink" | "paymentLabel">;
   messages: OrderMessage[];
   onAddPhone?: () => void;
 }
@@ -34,7 +52,9 @@ const CHANNEL_LABELS: Record<MessageChannel, string> = {
 
 export default function CustomerMessages({
   orderId,
+  trackingToken,
   order,
+  shopSettings,
   messages: initialMessages,
   onAddPhone,
 }: Props) {
@@ -48,6 +68,41 @@ export default function CustomerMessages({
 
   const phone = order.customerPhone?.trim() ?? "";
   const hasPhone = !!phone && isValidPhone(phone);
+
+  const trackingUrl = useMemo(() => {
+    if (typeof window === "undefined") return `/track/${trackingToken}`;
+    return buildTrackingUrl(window.location.origin, trackingToken);
+  }, [trackingToken]);
+
+  const trackingMessage = useMemo(
+    () =>
+      buildTrackingMessage({
+        customerName: order.customerName,
+        orderNumber: order.orderNumber,
+        projectType: order.projectType,
+        trackingUrl,
+      }),
+    [order.customerName, order.orderNumber, order.projectType, trackingUrl]
+  );
+
+  const paymentInstructions = useMemo(
+    () => formatPaymentInstructions(shopSettings),
+    [shopSettings]
+  );
+
+  const paymentMessage = useMemo(() => {
+    if (!paymentInstructions) return null;
+    return buildPaymentRequestMessage({
+      customerName: order.customerName,
+      orderNumber: order.orderNumber,
+      projectType: order.projectType,
+      unitPrice: order.unitPrice,
+      quantity: order.quantity,
+      paymentInstructions,
+    });
+  }, [order, paymentInstructions]);
+
+  const canRequestPayment = hasPaymentLink(shopSettings) && !!paymentMessage;
 
   function goToPhoneField() {
     setError(null);
@@ -93,6 +148,68 @@ export default function CustomerMessages({
 
     try {
       await logMessage(text, "Outbound", channel);
+      window.open(url, "_blank", "noopener,noreferrer");
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Something went wrong");
+    } finally {
+      setSending(false);
+    }
+  }
+
+  async function handleSendPaymentRequest(channel: "WhatsApp" | "SMS") {
+    if (!paymentMessage) {
+      setError("missing_payment_link");
+      return;
+    }
+    if (!hasPhone) {
+      setError("missing_phone");
+      return;
+    }
+
+    const url =
+      channel === "WhatsApp"
+        ? buildWhatsAppUrl(phone, paymentMessage)
+        : buildSmsUrl(phone, paymentMessage);
+
+    if (!url) {
+      setError("Invalid phone number.");
+      return;
+    }
+
+    setSending(true);
+    setError(null);
+
+    try {
+      await logMessage(paymentMessage, "Outbound", channel);
+      window.open(url, "_blank", "noopener,noreferrer");
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Something went wrong");
+    } finally {
+      setSending(false);
+    }
+  }
+
+  async function handleSendTrackingLink(channel: "WhatsApp" | "SMS") {
+    if (!hasPhone) {
+      setError("missing_phone");
+      return;
+    }
+
+    const url =
+      channel === "WhatsApp"
+        ? buildWhatsAppUrl(phone, trackingMessage)
+        : buildSmsUrl(phone, trackingMessage);
+
+    if (!url) {
+      setError("Invalid phone number.");
+      return;
+    }
+
+    setSending(true);
+    setError(null);
+
+    try {
+      await logMessage(trackingMessage, "Outbound", channel);
       window.open(url, "_blank", "noopener,noreferrer");
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Something went wrong");
@@ -188,6 +305,55 @@ export default function CustomerMessages({
       )}
 
       <div className="space-y-4 border-t pt-4" style={{ borderColor: "var(--dm-border)" }}>
+        <div>
+          <label className="label-field mb-2 block">Quick actions</label>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => handleSendPaymentRequest("WhatsApp")}
+              disabled={sending || !canRequestPayment}
+              className="btn-primary"
+            >
+              Request payment (WhatsApp)
+            </button>
+            <button
+              type="button"
+              onClick={() => handleSendPaymentRequest("SMS")}
+              disabled={sending || !canRequestPayment}
+              className="btn-secondary"
+            >
+              Request payment (Text)
+            </button>
+            <button
+              type="button"
+              onClick={() => handleSendTrackingLink("WhatsApp")}
+              disabled={sending}
+              className="btn-secondary"
+            >
+              Send tracking link (WhatsApp)
+            </button>
+            <button
+              type="button"
+              onClick={() => handleSendTrackingLink("SMS")}
+              disabled={sending}
+              className="btn-secondary"
+            >
+              Send tracking link (Text)
+            </button>
+          </div>
+          {!canRequestPayment ? (
+            <p className="mt-2 text-xs text-muted">
+              <Link
+                href="/settings/shop"
+                className="font-semibold text-violet-600 underline decoration-violet-500/40 underline-offset-2 transition-colors hover:text-violet-500 dark:text-violet-400 dark:hover:text-violet-300"
+              >
+                Add a payment link
+              </Link>{" "}
+              in Shop settings to enable one-tap payment requests.
+            </p>
+          ) : null}
+        </div>
+
         <div>
           <label className="label-field mb-2 block">Message to customer</label>
           <textarea

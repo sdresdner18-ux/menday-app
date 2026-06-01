@@ -25,6 +25,7 @@ async function getPageData(): Promise<{
     archived: archivedRaw.map(serializeOrder),
     stages: context.stages,
     orderStats: context.orderStats,
+    shopSettings: context.shopSettings,
   };
 }
 
@@ -33,6 +34,7 @@ export default async function ArchivePage() {
     archived: [] as Order[],
     stages: [] as WorkflowStage[],
     orderStats: { active: 0, archived: 0, urgent: 0, waitingFiles: 0 },
+    shopSettings: null as Awaited<ReturnType<typeof getAppShellContext>>["shopSettings"] | null,
   };
 
   try {
@@ -42,7 +44,7 @@ export default async function ArchivePage() {
   }
 
   return (
-    <AppShell stages={data.stages} orderStats={data.orderStats}>
+    <AppShell stages={data.stages} orderStats={data.orderStats} shopSettings={data.shopSettings}>
       <OrderArchive orders={data.archived} stages={data.stages} />
     </AppShell>
   );

@@ -35,6 +35,7 @@ async function getPageData(): Promise<{
     orders: ordersRaw.map(serializeOrder),
     stages: context.stages,
     orderStats: context.orderStats,
+    shopSettings: context.shopSettings,
   };
 }
 
@@ -43,6 +44,7 @@ export default async function JobsPage() {
     orders: [] as Order[],
     stages: [] as WorkflowStage[],
     orderStats: { active: 0, archived: 0, urgent: 0, waitingFiles: 0 },
+    shopSettings: null as Awaited<ReturnType<typeof getAppShellContext>>["shopSettings"] | null,
   };
 
   try {
@@ -52,7 +54,7 @@ export default async function JobsPage() {
   }
 
   return (
-    <AppShell stages={data.stages} orderStats={data.orderStats}>
+    <AppShell stages={data.stages} orderStats={data.orderStats} shopSettings={data.shopSettings}>
       <PendingJobsList orders={data.orders} stages={data.stages} />
     </AppShell>
   );

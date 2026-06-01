@@ -37,6 +37,14 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const isAuthRoute =
     pathname.startsWith("/login") || pathname.startsWith("/auth");
+  const isPublicTrackRoute =
+    pathname.startsWith("/track") || pathname.startsWith("/api/track");
+  const isPublicShopRoute = pathname.startsWith("/api/shop/public");
+
+  if (!user && (isAuthRoute || isPublicTrackRoute || isPublicShopRoute)) {
+    return supabaseResponse;
+  }
+
   const isApi = pathname.startsWith("/api");
 
   if (!user && !isAuthRoute) {

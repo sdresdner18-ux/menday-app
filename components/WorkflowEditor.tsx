@@ -302,9 +302,14 @@ export default function WorkflowEditor({ initialStages }: Props) {
             correctly.
           </p>
         </div>
-        <Link href="/settings/team" className="btn-secondary text-sm">
-          Team settings
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          <Link href="/settings/shop" className="btn-secondary text-sm">
+            Shop settings
+          </Link>
+          <Link href="/settings/team" className="btn-secondary text-sm">
+            Team settings
+          </Link>
+        </div>
       </div>
 
       <div

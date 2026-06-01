@@ -6,6 +6,7 @@ import { ensureChecklistItems, ensureStatusHistory } from "@/lib/orderExtras";
 import { orderWithTeamInclude, serializeOrder } from "@/lib/customers";
 import { getAppShellOrderStats, getCachedWorkflowStages } from "@/lib/appShellData";
 import { getStageLabel } from "@/lib/workflow";
+import { getCachedShopSettings } from "@/lib/shopSettings";
 import OrderDetailClient from "./OrderDetailClient";
 import { OrderDetailData } from "@/lib/types";
 
@@ -15,7 +16,10 @@ interface Props {
 
 export default async function OrderDetailPage({ params }: Props) {
   const stages = await getCachedWorkflowStages();
-  const orderStats = await getAppShellOrderStats(stages);
+  const [orderStats, shopSettings] = await Promise.all([
+    getAppShellOrderStats(stages),
+    getCachedShopSettings(),
+  ]);
 
   const order = await prisma.order.findUnique({
     where: { id: params.id },
@@ -85,5 +89,5 @@ export default async function OrderDetailPage({ params }: Props) {
     })),
   };
 
-  return <OrderDetailClient data={data} stages={stages} orderStats={orderStats} />;
+  return <OrderDetailClient data={data} stages={stages} orderStats={orderStats} shopSettings={shopSettings} />;
 }

@@ -44,6 +44,7 @@ export default async function CustomersPage() {
     latestOrderByCustomer: {} as Record<string, string | null>,
     stages: [] as Awaited<ReturnType<typeof getAppShellContext>>["stages"],
     orderStats: { active: 0, archived: 0, urgent: 0, waitingFiles: 0 },
+    shopSettings: null as Awaited<ReturnType<typeof getAppShellContext>>["shopSettings"] | null,
   };
 
   try {
@@ -53,7 +54,7 @@ export default async function CustomersPage() {
   }
 
   return (
-    <AppShell stages={data.stages} orderStats={data.orderStats}>
+    <AppShell stages={data.stages} orderStats={data.orderStats} shopSettings={data.shopSettings}>
       <CustomerDirectory
         customers={data.customers}
         orderCounts={data.orderCounts}

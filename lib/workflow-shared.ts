@@ -22,41 +22,52 @@ export const LEGACY_STATUS_TO_SLUG: Record<string, string> = {
   Completed: "completed",
 };
 
+/** Labels from the first shipped defaults — used to upgrade without overwriting custom names. */
+export const LEGACY_DEFAULT_STAGE_LABELS: Record<string, string> = {
+  new: "New",
+  "needs-clarification": "Needs Clarification",
+  "waiting-for-files": "Waiting for Files",
+  "in-progress": "In Progress",
+  packed: "Packed",
+  "awaiting-payment": "Awaiting Payment",
+  completed: "Completed",
+};
+
 export const DEFAULT_WORKFLOW_STAGES: Omit<
   SerializedWorkflowStage,
   "id"
 >[] = [
   {
     slug: "new",
-    label: "New",
+    label: "Order Received",
     position: 0,
     stageType: "Normal",
     color: "zinc",
   },
   {
-    slug: "needs-clarification",
-    label: "Needs Clarification",
-    position: 1,
-    stageType: "Normal",
-    color: "amber",
-  },
-  {
     slug: "waiting-for-files",
-    label: "Waiting for Files",
-    position: 2,
+    label: "Files Received",
+    position: 1,
     stageType: "Normal",
     color: "yellow",
   },
   {
     slug: "in-progress",
-    label: "In Progress",
-    position: 3,
+    label: "In Production",
+    position: 2,
     stageType: "Normal",
     color: "blue",
   },
   {
+    slug: "finishing",
+    label: "Finishing",
+    position: 3,
+    stageType: "Normal",
+    color: "violet",
+  },
+  {
     slug: "packed",
-    label: "Packed",
+    label: "Ready / Packed",
     position: 4,
     stageType: "Normal",
     color: "teal",
@@ -148,7 +159,7 @@ export function getDefaultStage(
     stages[0] ?? {
       id: "fallback-new",
       slug: "new",
-      label: "New",
+      label: "Order Received",
       position: 0,
       stageType: "Normal",
       color: "zinc",

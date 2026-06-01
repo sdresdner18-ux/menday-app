@@ -148,9 +148,14 @@ export default function TeamEditor({ initialMembers }: Props) {
             Add your shop team here, then assign them to jobs from any order.
           </p>
         </div>
-        <Link href="/settings/workflow" className="btn-secondary text-sm">
-          Workflow settings
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          <Link href="/settings/shop" className="btn-secondary text-sm">
+            Shop settings
+          </Link>
+          <Link href="/settings/workflow" className="btn-secondary text-sm">
+            Workflow settings
+          </Link>
+        </div>
       </div>
 
       <form onSubmit={handleAdd} className="glass-card mb-6 grid gap-4 p-5 sm:grid-cols-2">

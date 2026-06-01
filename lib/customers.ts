@@ -63,6 +63,7 @@ export function serializeOrder(order: OrderWithCustomer | OrderWithTeam) {
     paymentReceivedAt: order.paymentReceivedAt
       ? order.paymentReceivedAt.toISOString()
       : null,
+    trackingToken: order.trackingToken,
     ...(teamMembers !== undefined ? { teamMembers } : {}),
     createdAt: order.createdAt.toISOString(),
     updatedAt: order.updatedAt.toISOString(),

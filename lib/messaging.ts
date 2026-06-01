@@ -1,7 +1,7 @@
 export type MessageChannel = "WhatsApp" | "SMS" | "Manual";
 
 /** Strip to up to 10 NANP digits (US/Canada). */
-function phoneDigits(phone: string): string {
+export function phoneDigits(phone: string): string {
   let digits = phone.replace(/\D/g, "");
 
   if (digits.length === 11 && digits.startsWith("1")) {

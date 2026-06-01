@@ -22,7 +22,7 @@ export default async function TeamSettingsPage() {
   }
 
   return (
-    <AppShell stages={shell.stages} orderStats={shell.orderStats}>
+    <AppShell stages={shell.stages} orderStats={shell.orderStats} shopSettings={shell.shopSettings}>
       <TeamEditor initialMembers={members} />
     </AppShell>
   );

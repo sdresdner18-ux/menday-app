@@ -4,6 +4,7 @@ import { cache } from "react";
 import { prisma } from "./prisma";
 import { ensureWorkflowStages } from "./workflow";
 import { getArchiveStage } from "./workflow-shared";
+import { getCachedShopSettings } from "./shopSettings";
 
 export interface AppShellOrderStats {
   active: number;
@@ -36,7 +37,10 @@ export async function getAppShellOrderStats(
 }
 
 export async function getAppShellContext() {
-  const stages = await getCachedWorkflowStages();
+  const [stages, shopSettings] = await Promise.all([
+    getCachedWorkflowStages(),
+    getCachedShopSettings(),
+  ]);
   const orderStats = await getAppShellOrderStats(stages);
-  return { stages, orderStats };
+  return { stages, orderStats, shopSettings };
 }
