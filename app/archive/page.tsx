@@ -11,7 +11,6 @@ async function getPageData(): Promise<{
   archived: Order[];
   orders: Order[];
   stages: WorkflowStage[];
-  dbError: string | null;
 }> {
   try {
     const [stages, ordersRaw] = await Promise.all([
@@ -27,24 +26,17 @@ async function getPageData(): Promise<{
       archived: orders.filter((o) => o.status === archiveSlug),
       orders,
       stages,
-      dbError: null,
     };
   } catch {
-    return {
-      archived: [],
-      orders: [],
-      stages: [],
-      dbError:
-        "Cannot connect to the database. Update DATABASE_URL in .env and run npm run db:push.",
-    };
+    return { archived: [], orders: [], stages: [] };
   }
 }
 
 export default async function ArchivePage() {
-  const { archived, orders, stages, dbError } = await getPageData();
+  const { archived, orders, stages } = await getPageData();
 
   return (
-    <AppShell orders={orders} stages={stages} dbError={dbError}>
+    <AppShell orders={orders} stages={stages}>
       <OrderArchive orders={archived} stages={stages} />
     </AppShell>
   );

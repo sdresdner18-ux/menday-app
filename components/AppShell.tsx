@@ -13,7 +13,6 @@ interface Props {
   children: React.ReactNode;
   orders: Order[];
   stages?: WorkflowStage[];
-  dbError?: string | null;
 }
 
 function StatPill({
@@ -41,7 +40,7 @@ function StatPill({
   );
 }
 
-export default function AppShell({ children, orders, stages = [], dbError }: Props) {
+export default function AppShell({ children, orders, stages = [] }: Props) {
   const { theme, toggleTheme } = useTheme();
   const pathname = usePathname();
 
@@ -146,11 +145,6 @@ export default function AppShell({ children, orders, stages = [], dbError }: Pro
 
           {/* Content */}
           <main className="flex-1 p-4 sm:p-6 overflow-x-hidden">
-            {dbError && (
-              <div className="mb-6 rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-700 dark:text-amber-300">
-                {dbError}
-              </div>
-            )}
             {children}
           </main>
         </div>

@@ -13,7 +13,6 @@ async function getPageData(): Promise<{
   latestOrderByCustomer: Record<string, string | null>;
   orders: Order[];
   stages: Awaited<ReturnType<typeof ensureWorkflowStages>>;
-  dbError: string | null;
 }> {
   try {
     const [stages, customersRaw, ordersRaw] = await Promise.all([
@@ -48,7 +47,6 @@ async function getPageData(): Promise<{
       latestOrderByCustomer,
       orders: ordersRaw.map(serializeOrder),
       stages,
-      dbError: null,
     };
   } catch {
     return {
@@ -57,18 +55,16 @@ async function getPageData(): Promise<{
       latestOrderByCustomer: {},
       orders: [],
       stages: [],
-      dbError:
-        "Cannot connect to the database. Update DATABASE_URL in .env and run npm run db:push.",
     };
   }
 }
 
 export default async function CustomersPage() {
-  const { customers, orderCounts, latestOrderByCustomer, orders, stages, dbError } =
+  const { customers, orderCounts, latestOrderByCustomer, orders, stages } =
     await getPageData();
 
   return (
-    <AppShell orders={orders} stages={stages} dbError={dbError}>
+    <AppShell orders={orders} stages={stages}>
       <CustomerDirectory
         customers={customers}
         orderCounts={orderCounts}

@@ -10,6 +10,7 @@
     "postinstall": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:push": "prisma db push",
+    "db-push": "prisma db push",
     "db:workflow": "node scripts/migrate-workflow-stages.mjs",
     "db:backfill-customers": "node scripts/backfill-customers.mjs"
   },

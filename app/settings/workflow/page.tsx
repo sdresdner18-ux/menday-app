@@ -10,7 +10,6 @@ import { ensureWorkflowStages } from "@/lib/workflow";
 async function getPageData(): Promise<{
   stages: WorkflowStage[];
   orders: Order[];
-  dbError: string | null;
 }> {
   try {
     const [stages, ordersRaw] = await Promise.all([
@@ -23,18 +22,17 @@ async function getPageData(): Promise<{
     return {
       stages,
       orders: ordersRaw.map(serializeOrder),
-      dbError: null,
     };
   } catch {
-    return { stages: [], orders: [], dbError: "Cannot connect to the database." };
+    return { stages: [], orders: [] };
   }
 }
 
 export default async function WorkflowSettingsPage() {
-  const { stages, orders, dbError } = await getPageData();
+  const { stages, orders } = await getPageData();
 
   return (
-    <AppShell orders={orders} stages={stages} dbError={dbError}>
+    <AppShell orders={orders} stages={stages}>
       <WorkflowEditor initialStages={stages} />
     </AppShell>
   );

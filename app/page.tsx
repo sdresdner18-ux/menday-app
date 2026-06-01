@@ -11,7 +11,6 @@ import { ensureWorkflowStages, getArchiveStage } from "@/lib/workflow";
 async function getPageData(): Promise<{
   orders: Order[];
   stages: WorkflowStage[];
-  dbError: string | null;
 }> {
   try {
     const [stages, ordersRaw] = await Promise.all([
@@ -24,25 +23,19 @@ async function getPageData(): Promise<{
     return {
       orders: ordersRaw.map(serializeOrder),
       stages,
-      dbError: null,
     };
   } catch {
-    return {
-      orders: [],
-      stages: [],
-      dbError:
-        "Cannot connect to the database. Update DATABASE_URL in .env and run npm run db:push.",
-    };
+    return { orders: [], stages: [] };
   }
 }
 
 export default async function HomePage() {
-  const { orders, stages, dbError } = await getPageData();
+  const { orders, stages } = await getPageData();
   const archiveSlug = stages.length ? getArchiveStage(stages).slug : "completed";
   const activeOrders = orders.filter((o) => o.status !== archiveSlug);
 
   return (
-    <AppShell orders={orders} stages={stages} dbError={dbError}>
+    <AppShell orders={orders} stages={stages}>
       <AIParser />
 
       <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
