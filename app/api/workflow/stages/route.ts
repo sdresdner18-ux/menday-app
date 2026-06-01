@@ -3,7 +3,6 @@ import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import {
   ensureWorkflowStages,
-  serializeWorkflowStage,
   slugifyStageLabel,
   STAGE_COLOR_PALETTE,
 } from "@/lib/workflow";
@@ -39,7 +38,7 @@ export async function POST(req: NextRequest) {
     const payment = stages.find((s) => s.stageType === "Payment");
     const insertAt = payment?.position ?? stages.length - 1;
 
-    let baseSlug = slugifyStageLabel(label);
+    const baseSlug = slugifyStageLabel(label);
     let slug = baseSlug;
     let suffix = 2;
     while (stages.some((s) => s.slug === slug)) {

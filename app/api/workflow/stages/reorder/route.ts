@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { ensureWorkflowStages, serializeWorkflowStage } from "@/lib/workflow";
+import { ensureWorkflowStages } from "@/lib/workflow";
 
 export async function PATCH(req: NextRequest) {
   const auth = await requireAuth();
