@@ -24,7 +24,7 @@ import {
   STAGE_COLOR_PALETTE,
   getStageColumnStyle,
   getStageDotStyle,
-} from "@/lib/workflow";
+} from "@/lib/workflow-shared";
 
 interface Props {
   initialStages: WorkflowStage[];

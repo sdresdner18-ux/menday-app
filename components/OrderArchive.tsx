@@ -11,7 +11,7 @@ import {
   getActiveBoardStages,
   getArchiveStage,
   getStageLabel,
-} from "@/lib/workflow";
+} from "@/lib/workflow-shared";
 
 interface Props {
   orders: Order[];

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Order, WorkflowStage } from "@/lib/types";
 import { formatMoney, lineAmount } from "@/lib/currency";
-import { getStageBadgeStyle, getStageBySlug } from "@/lib/workflow";
+import { getStageBadgeStyle, getStageBySlug } from "@/lib/workflow-shared";
 
 const PRIORITY_ACCENT: Record<string, string> = {
   Urgent: "#ef4444",

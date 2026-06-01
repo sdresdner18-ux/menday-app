@@ -1,7 +1,7 @@
 export type Priority = "Low" | "Medium" | "High" | "Urgent";
 
-export type { SerializedWorkflowStage as WorkflowStage } from "@/lib/workflow";
-export type { WorkflowStageType } from "@/lib/workflow";
+export type { SerializedWorkflowStage as WorkflowStage } from "@/lib/workflow-shared";
+export type { WorkflowStageType } from "@/lib/workflow-shared";
 
 export type ProjectType =
   | "Magnet"

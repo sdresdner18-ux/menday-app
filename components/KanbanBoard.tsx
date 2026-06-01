@@ -16,7 +16,7 @@ import {
   getArchiveStage,
   getBoardColumnStages,
   getPaymentStage,
-} from "@/lib/workflow";
+} from "@/lib/workflow-shared";
 import KanbanColumn from "./KanbanColumn";
 import OrderCard from "./OrderCard";
 import ArchiveNoticeModal from "./ArchiveNoticeModal";

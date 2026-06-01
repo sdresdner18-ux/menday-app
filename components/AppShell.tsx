@@ -6,7 +6,7 @@ import { Order, WorkflowStage } from "@/lib/types";
 import { useTheme } from "./ThemeProvider";
 import NewOrderModal from "./NewOrderModal";
 import SignOutButton from "./SignOutButton";
-import { getArchiveStage } from "@/lib/workflow";
+import { getArchiveStage } from "@/lib/workflow-shared";
 import { isAuthConfigured } from "@/lib/auth-config";
 
 interface Props {

@@ -2,7 +2,7 @@
 import { useDroppable } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { Order, WorkflowStage } from "@/lib/types";
-import { getStageColumnStyle, getStageDotStyle } from "@/lib/workflow";
+import { getStageColumnStyle, getStageDotStyle } from "@/lib/workflow-shared";
 import OrderCard from "./OrderCard";
 
 interface Props {

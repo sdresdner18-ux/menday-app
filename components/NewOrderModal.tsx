@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { PROJECT_TYPES, PRIORITIES, WorkflowStage } from "@/lib/types";
-import { getCreateOrderStages, getDefaultStage } from "@/lib/workflow";
+import { getCreateOrderStages, getDefaultStage } from "@/lib/workflow-shared";
 import { useRouter } from "next/navigation";
 import CustomerSelect, { CustomerFieldValue } from "@/components/CustomerSelect";
 

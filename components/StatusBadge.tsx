@@ -1,7 +1,7 @@
 "use client";
 
 import { WorkflowStage } from "@/lib/types";
-import { getStageBadgeStyle, getStageBySlug, getStageLabel } from "@/lib/workflow";
+import { getStageBadgeStyle, getStageBySlug, getStageLabel } from "@/lib/workflow-shared";
 
 interface Props {
   status: string;

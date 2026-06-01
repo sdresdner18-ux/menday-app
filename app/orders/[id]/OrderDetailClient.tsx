@@ -14,7 +14,7 @@ import {
   getBoardColumnStages,
   getPaymentStage,
   getStageLabel,
-} from "@/lib/workflow";
+} from "@/lib/workflow-shared";
 import PriorityBadge from "@/components/PriorityBadge";
 import StatusBadge from "@/components/StatusBadge";
 import AppShell from "@/components/AppShell";

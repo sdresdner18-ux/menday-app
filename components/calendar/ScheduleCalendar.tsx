@@ -23,7 +23,7 @@ import {
   startOfDay,
   toDateKey,
 } from "@/lib/calendar";
-import { getArchiveStage } from "@/lib/workflow";
+import { getArchiveStage } from "@/lib/workflow-shared";
 
 interface Props {
   orders: Order[];
