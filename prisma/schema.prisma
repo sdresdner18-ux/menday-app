@@ -1,0 +1,129 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model WorkflowStage {
+  id        String            @id @default(cuid())
+  slug      String            @unique
+  label     String
+  position  Int
+  stageType WorkflowStageType @default(Normal)
+  color     String            @default("zinc")
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+}
+
+model Customer {
+  id        String   @id @default(cuid())
+  name      String
+  phone     String?
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  orders    Order[]
+
+  @@index([name])
+  @@index([phone])
+}
+
+model Order {
+  id                String          @id @default(cuid())
+  customerId        String?
+  customer          Customer?       @relation(fields: [customerId], references: [id])
+  customerName      String
+  customerPhone     String?
+  projectType       String
+  quantity          Int?
+  unitPrice         Decimal?        @db.Decimal(10, 2)
+  color             String?
+  deadline          DateTime?
+  filesExpected     Boolean         @default(false)
+  notes             String?
+  orderNumber       String?
+  priority          Priority        @default(Medium)
+  status            String          @default("new")
+  paymentReceived   Boolean         @default(false)
+  paymentReceivedAt DateTime?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  checklistItems    ChecklistItem[]
+  orderNotes        OrderNote[]
+  orderMessages     OrderMessage[]
+  statusHistory     StatusHistory[]
+
+  @@index([customerId])
+  @@index([status])
+}
+
+model ChecklistItem {
+  id       String  @id @default(cuid())
+  orderId  String
+  order    Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  label    String
+  checked  Boolean @default(false)
+  position Int
+
+  @@index([orderId])
+}
+
+model OrderNote {
+  id        String   @id @default(cuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  content   String
+  createdAt DateTime @default(now())
+
+  @@index([orderId])
+}
+
+model StatusHistory {
+  id          String   @id @default(cuid())
+  orderId     String
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  statusSlug  String   @default("")
+  statusLabel String   @default("")
+  createdAt   DateTime @default(now())
+
+  @@index([orderId])
+}
+
+model OrderMessage {
+  id        String           @id @default(cuid())
+  orderId   String
+  order     Order            @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  direction MessageDirection
+  channel   MessageChannel
+  body      String
+  createdAt DateTime         @default(now())
+
+  @@index([orderId])
+}
+
+enum WorkflowStageType {
+  Normal
+  Payment
+  Archive
+}
+
+enum MessageDirection {
+  Outbound
+  Inbound
+}
+
+enum MessageChannel {
+  WhatsApp
+  SMS
+  Manual
+}
+
+enum Priority {
+  Low
+  Medium
+  High
+  Urgent
+}

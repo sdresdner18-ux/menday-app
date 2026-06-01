@@ -3,10 +3,9 @@ export const dynamic = "force-dynamic";
 import { prisma } from "@/lib/prisma";
 import { Order, WorkflowStage } from "@/lib/types";
 import AppShell from "@/components/AppShell";
-import KanbanBoard from "@/components/KanbanBoard";
-import AIParser from "@/components/AIParser";
+import ScheduleCalendar from "@/components/calendar/ScheduleCalendar";
 import { orderWithCustomerInclude, serializeOrder } from "@/lib/customers";
-import { ensureWorkflowStages, getArchiveStage } from "@/lib/workflow";
+import { ensureWorkflowStages } from "@/lib/workflow";
 
 async function getPageData(): Promise<{
   orders: Order[];
@@ -18,7 +17,7 @@ async function getPageData(): Promise<{
       ensureWorkflowStages(),
       prisma.order.findMany({
         include: orderWithCustomerInclude,
-        orderBy: { createdAt: "desc" },
+        orderBy: { deadline: "asc" },
       }),
     ]);
     return {
@@ -36,31 +35,12 @@ async function getPageData(): Promise<{
   }
 }
 
-export default async function HomePage() {
+export default async function CalendarPage() {
   const { orders, stages, dbError } = await getPageData();
-  const archiveSlug = stages.length ? getArchiveStage(stages).slug : "completed";
-  const activeOrders = orders.filter((o) => o.status !== archiveSlug);
 
   return (
     <AppShell orders={orders} stages={stages} dbError={dbError}>
-      <AIParser />
-
-      <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="section-title mb-1">Production Board</p>
-          <h2 className="text-2xl font-extrabold tracking-tight">
-            {activeOrders.length} active order{activeOrders.length !== 1 ? "s" : ""}
-          </h2>
-        </div>
-        <a
-          href="/settings/workflow"
-          className="btn-secondary text-sm"
-        >
-          Customize workflow
-        </a>
-      </div>
-
-      <KanbanBoard initialOrders={orders} stages={stages} />
+      <ScheduleCalendar orders={orders} stages={stages} />
     </AppShell>
   );
 }
