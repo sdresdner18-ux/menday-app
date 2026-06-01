@@ -1,7 +1,14 @@
 import { Customer, Order, Prisma } from "@prisma/client";
 import { prisma } from "./prisma";
+import {
+  OrderWithTeam,
+  orderWithTeamInclude,
+  serializeOrderTeamMembers,
+} from "./teamMembers";
 
 export type OrderWithCustomer = Order & { customer: Customer | null };
+
+export type OrderWithCustomerAndTeam = OrderWithTeam;
 
 export function serializeCustomer(customer: Customer) {
   return {
@@ -29,8 +36,13 @@ function resolveCustomerSnapshot(order: OrderWithCustomer) {
   };
 }
 
-export function serializeOrder(order: OrderWithCustomer) {
-  const customer = resolveCustomerSnapshot(order);
+export function serializeOrder(order: OrderWithCustomer | OrderWithTeam) {
+  const customer = resolveCustomerSnapshot(order as OrderWithCustomer);
+
+  const teamMembers =
+    "teamAssignments" in order && order.teamAssignments
+      ? serializeOrderTeamMembers(order as OrderWithTeam)
+      : undefined;
 
   return {
     id: order.id,
@@ -51,6 +63,7 @@ export function serializeOrder(order: OrderWithCustomer) {
     paymentReceivedAt: order.paymentReceivedAt
       ? order.paymentReceivedAt.toISOString()
       : null,
+    ...(teamMembers !== undefined ? { teamMembers } : {}),
     createdAt: order.createdAt.toISOString(),
     updatedAt: order.updatedAt.toISOString(),
     customer: serializeCustomer(customer),
@@ -60,6 +73,8 @@ export function serializeOrder(order: OrderWithCustomer) {
 export const orderWithCustomerInclude = {
   customer: true,
 } satisfies Prisma.OrderInclude;
+
+export { orderWithTeamInclude };
 
 export async function findOrCreateCustomer(
   name: string,

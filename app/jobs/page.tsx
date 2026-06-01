@@ -3,34 +3,44 @@ export const dynamic = "force-dynamic";
 import { prisma } from "@/lib/prisma";
 import { Order, WorkflowStage } from "@/lib/types";
 import AppShell from "@/components/AppShell";
-import OrderArchive from "@/components/OrderArchive";
-import { orderWithCustomerInclude, serializeOrder } from "@/lib/customers";
+import PendingJobsList from "@/components/PendingJobsList";
+import { orderWithTeamInclude, serializeOrder } from "@/lib/customers";
 import { getAppShellContext } from "@/lib/appShellData";
 import { getArchiveStage } from "@/lib/workflow";
 
 async function getPageData(): Promise<{
-  archived: Order[];
+  orders: Order[];
   stages: WorkflowStage[];
   orderStats: Awaited<ReturnType<typeof getAppShellContext>>["orderStats"];
 }> {
   const context = await getAppShellContext();
   const archiveSlug = getArchiveStage(context.stages).slug;
-  const archivedRaw = await prisma.order.findMany({
-    where: { status: archiveSlug },
-    include: orderWithCustomerInclude,
-    orderBy: { updatedAt: "desc" },
-  });
+
+  let ordersRaw;
+  try {
+    ordersRaw = await prisma.order.findMany({
+      where: { status: { not: archiveSlug } },
+      include: orderWithTeamInclude,
+      orderBy: [{ deadline: "asc" }, { updatedAt: "desc" }],
+    });
+  } catch {
+    ordersRaw = await prisma.order.findMany({
+      where: { status: { not: archiveSlug } },
+      include: { customer: true },
+      orderBy: [{ deadline: "asc" }, { updatedAt: "desc" }],
+    });
+  }
 
   return {
-    archived: archivedRaw.map(serializeOrder),
+    orders: ordersRaw.map(serializeOrder),
     stages: context.stages,
     orderStats: context.orderStats,
   };
 }
 
-export default async function ArchivePage() {
+export default async function JobsPage() {
   let data = {
-    archived: [] as Order[],
+    orders: [] as Order[],
     stages: [] as WorkflowStage[],
     orderStats: { active: 0, archived: 0, urgent: 0, waitingFiles: 0 },
   };
@@ -38,12 +48,12 @@ export default async function ArchivePage() {
   try {
     data = await getPageData();
   } catch (error) {
-    console.error("Archive page error:", error);
+    console.error("Jobs page error:", error);
   }
 
   return (
     <AppShell stages={data.stages} orderStats={data.orderStats}>
-      <OrderArchive orders={data.archived} stages={data.stages} />
+      <PendingJobsList orders={data.orders} stages={data.stages} />
     </AppShell>
   );
 }

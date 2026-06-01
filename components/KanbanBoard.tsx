@@ -28,16 +28,14 @@ interface Props {
 }
 
 export default function KanbanBoard({ initialOrders, stages }: Props) {
-  if (stages.length === 0) {
-    return null;
-  }
+  const archiveStage = stages.length > 0 ? getArchiveStage(stages) : null;
+  const paymentStage = stages.length > 0 ? getPaymentStage(stages) : undefined;
+  const columns = stages.length > 0 ? getBoardColumnStages(stages) : [];
 
-  const archiveStage = getArchiveStage(stages);
-  const paymentStage = getPaymentStage(stages);
-  const columns = getBoardColumnStages(stages);
-
-  const [orders, setOrders] = useState<Order[]>(
-    initialOrders.filter((o) => o.status !== archiveStage.slug)
+  const [orders, setOrders] = useState<Order[]>(() =>
+    archiveStage
+      ? initialOrders.filter((o) => o.status !== archiveStage.slug)
+      : initialOrders
   );
   const [activeOrder, setActiveOrder] = useState<Order | null>(null);
   const [boardError, setBoardError] = useState<string | null>(null);
@@ -48,12 +46,31 @@ export default function KanbanBoard({ initialOrders, stages }: Props) {
   const router = useRouter();
 
   useEffect(() => {
+    if (!archiveStage) return;
     setOrders(initialOrders.filter((o) => o.status !== archiveStage.slug));
-  }, [initialOrders, archiveStage.slug]);
+  }, [initialOrders, archiveStage?.slug]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
   );
+
+  if (stages.length === 0) {
+    return (
+      <div className="glass-card p-8 text-center">
+        <p className="text-sm text-muted">
+          No workflow stages found.{" "}
+          <a href="/settings/workflow" className="font-bold text-violet-600 dark:text-violet-300">
+            Set up your workflow
+          </a>{" "}
+          to see the production board.
+        </p>
+      </div>
+    );
+  }
+
+  if (!archiveStage) {
+    return null;
+  }
 
   function handleDragStart(event: DragStartEvent) {
     const order = orders.find((o) => o.id === event.active.id);
@@ -133,10 +150,10 @@ export default function KanbanBoard({ initialOrders, stages }: Props) {
     }
   }
 
-  async function handleMarkPayment(orderId: string) {
+  async function handleMarkPayment(orderId: string, received: boolean) {
     setBoardError(null);
     try {
-      const updated = await patchOrder(orderId, { paymentReceived: true });
+      const updated = await patchOrder(orderId, { paymentReceived: received });
       setOrders((prev) =>
         prev.map((o) => (o.id === orderId ? updated : o))
       );

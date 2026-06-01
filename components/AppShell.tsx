@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Order, WorkflowStage } from "@/lib/types";
+import type { AppShellOrderStats } from "@/lib/appShellData";
 import { useTheme } from "./ThemeProvider";
 import NewOrderModal from "./NewOrderModal";
 import SignOutButton from "./SignOutButton";
@@ -11,8 +12,10 @@ import { isAuthConfigured } from "@/lib/auth-config";
 
 interface Props {
   children: React.ReactNode;
-  orders: Order[];
   stages?: WorkflowStage[];
+  orderStats?: AppShellOrderStats;
+  /** Prefer orderStats — avoids loading every order just for header counts. */
+  orders?: Order[];
 }
 
 function StatPill({
@@ -40,7 +43,12 @@ function StatPill({
   );
 }
 
-export default function AppShell({ children, orders, stages = [] }: Props) {
+export default function AppShell({
+  children,
+  stages = [],
+  orderStats,
+  orders = [],
+}: Props) {
   const { theme, toggleTheme } = useTheme();
   const pathname = usePathname();
 
@@ -48,12 +56,19 @@ export default function AppShell({ children, orders, stages = [] }: Props) {
   const waitingFilesSlug =
     stages.find((s) => s.slug === "waiting-for-files")?.slug ?? null;
 
-  const active = orders.filter((o) => o.status !== archiveSlug).length;
-  const archived = orders.filter((o) => o.status === archiveSlug).length;
-  const urgent = orders.filter((o) => o.priority === "Urgent").length;
-  const waitingFiles = waitingFilesSlug
-    ? orders.filter((o) => o.status === waitingFilesSlug).length
-    : 0;
+  const active =
+    orderStats?.active ??
+    orders.filter((o) => o.status !== archiveSlug).length;
+  const archived =
+    orderStats?.archived ??
+    orders.filter((o) => o.status === archiveSlug).length;
+  const urgent =
+    orderStats?.urgent ?? orders.filter((o) => o.priority === "Urgent").length;
+  const waitingFiles =
+    orderStats?.waitingFiles ??
+    (waitingFilesSlug
+      ? orders.filter((o) => o.status === waitingFilesSlug).length
+      : 0);
   const authEnabled = isAuthConfigured();
 
   return (
@@ -72,6 +87,12 @@ export default function AppShell({ children, orders, stages = [] }: Props) {
             active={pathname === "/"}
             label="Production Board"
             icon="▦"
+          />
+          <NavIcon
+            href="/jobs"
+            active={pathname.startsWith("/jobs")}
+            label="Pending Jobs"
+            icon="☰"
           />
           <NavIcon
             href="/customers"
@@ -97,12 +118,18 @@ export default function AppShell({ children, orders, stages = [] }: Props) {
             label="Customize Workflow"
             icon="⚙"
           />
+          <NavIcon
+            href="/settings/team"
+            active={pathname.startsWith("/settings/team")}
+            label="Team"
+            icon="👥"
+          />
         </aside>
 
         {/* Main */}
         <div className="flex-1 flex flex-col min-w-0">
           {/* Top bar */}
-          <header className="dm-chrome sticky top-0 z-40 border-b px-4 py-4 sm:px-6">
+          <header className="dm-chrome border-b px-4 py-4 sm:px-6">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="flex items-center gap-4">
                 <div className="md:hidden flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-amber-400">
@@ -138,7 +165,7 @@ export default function AppShell({ children, orders, stages = [] }: Props) {
 
                 {authEnabled && <SignOutButton />}
 
-                <NewOrderModal stages={stages} />
+                {pathname !== "/" && <NewOrderModal stages={stages} />}
               </div>
             </div>
           </header>

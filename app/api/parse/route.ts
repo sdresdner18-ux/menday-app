@@ -37,7 +37,7 @@ Message: "${message}"
 Return JSON with exactly these fields:
 {
   "customerName": "string - the customer's name",
-  "customerPhone": "string - phone number if mentioned, or null",
+  "customerPhone": "string - US phone number if mentioned (10 digits, e.g. 555-123-4567), or null",
   "projectType": "one of: Magnet, Stand, Mug, Keychain, Other",
   "quantity": number or null,
   "unitPrice": number or null - price per unit in USD if mentioned,

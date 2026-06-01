@@ -117,7 +117,7 @@ export default function ScheduleCalendar({ orders, stages }: Props) {
               Your production calendar
             </h2>
             <p className="mt-2 max-w-xl text-sm text-muted">
-              Every due date at a glance. Plan your day, week, or month around
+              Every completion date at a glance. Plan your day, week, or month around
               what actually needs to ship.
             </p>
           </div>
@@ -221,7 +221,7 @@ export default function ScheduleCalendar({ orders, stages }: Props) {
                 </span>
               </div>
               <p className="mb-3 text-xs text-muted">
-                Active orders without a due date yet.
+                Active orders without a completion date yet.
               </p>
               <div className="max-h-64 space-y-2 overflow-y-auto">
                 {unscheduled.slice(0, 8).map((order) => (
@@ -515,7 +515,7 @@ function DayView({
             </div>
             <p className="text-lg font-extrabold">Nothing due this day</p>
             <p className="mt-1 max-w-sm text-sm text-muted">
-              Your schedule is open. Drag orders on the board or set due dates to
+              Your schedule is open. Drag orders on the board or set completion dates to
               fill this day.
             </p>
             <Link href="/" className="btn-primary mt-6">

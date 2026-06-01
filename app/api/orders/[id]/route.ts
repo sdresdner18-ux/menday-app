@@ -10,6 +10,7 @@ import { logStatusChange } from "@/lib/orderExtras";
 import {
   ensureWorkflowStages,
   getArchiveStage,
+  getPaymentStage,
   normalizeStatusSlug,
 } from "@/lib/workflow";
 
@@ -44,6 +45,7 @@ export async function PATCH(
     const body = await req.json();
     const stages = await ensureWorkflowStages();
     const archiveStage = getArchiveStage(stages);
+    const paymentStage = getPaymentStage(stages);
 
     const existing = await prisma.order.findUnique({
       where: { id: params.id },
@@ -96,7 +98,7 @@ export async function PATCH(
 
     if (nextStatus === archiveStage.slug && !nextPaymentReceived) {
       return NextResponse.json(
-        { error: "Mark payment as received before completing this order." },
+        { error: "Check Payment received before moving to Completed." },
         { status: 400 }
       );
     }
@@ -109,6 +111,27 @@ export async function PATCH(
     if (body.paymentReceived !== undefined) {
       paymentUpdate.paymentReceived = Boolean(body.paymentReceived);
       paymentUpdate.paymentReceivedAt = body.paymentReceived ? new Date() : null;
+    }
+
+    if (
+      nextStatus !== undefined &&
+      paymentStage &&
+      nextStatus === paymentStage.slug &&
+      existing.status !== paymentStage.slug
+    ) {
+      paymentUpdate.paymentReceived = false;
+      paymentUpdate.paymentReceivedAt = null;
+    }
+
+    if (
+      nextStatus !== undefined &&
+      paymentStage &&
+      existing.status === paymentStage.slug &&
+      nextStatus !== paymentStage.slug &&
+      nextStatus !== archiveStage.slug
+    ) {
+      paymentUpdate.paymentReceived = false;
+      paymentUpdate.paymentReceivedAt = null;
     }
 
     if (nextStatus === archiveStage.slug) {

@@ -37,6 +37,16 @@ export interface Order {
   status: string;
   paymentReceived: boolean;
   paymentReceivedAt: string | null;
+  teamMembers?: TeamMember[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TeamMember {
+  id: string;
+  name: string;
+  role: string | null;
+  color: string;
   createdAt: string;
   updatedAt: string;
 }

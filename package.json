@@ -12,7 +12,9 @@
     "db:push": "prisma db push",
     "db-push": "prisma db push",
     "db:workflow": "node scripts/migrate-workflow-stages.mjs",
-    "db:backfill-customers": "node scripts/backfill-customers.mjs"
+    "db:generic-stages": "node scripts/genericize-workflow-stages.mjs",
+    "db:backfill-customers": "node scripts/backfill-customers.mjs",
+    "db:clear-demo-data": "node scripts/clear-demo-data.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.98.0",

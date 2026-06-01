@@ -239,7 +239,7 @@ export default function OrderInvoice({ order }: Props) {
                 <dd className="text-gray-900">{formatDate(order.createdAt)}</dd>
               </div>
               <div className="flex justify-between gap-8 sm:block">
-                <dt className="font-semibold text-gray-500">Due date</dt>
+                <dt className="font-semibold text-gray-500">Complete by</dt>
                 <dd className="text-gray-900">{formatDate(order.deadline)}</dd>
               </div>
             </dl>

@@ -3,8 +3,9 @@ export const dynamic = "force-dynamic";
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import { ensureChecklistItems, ensureStatusHistory } from "@/lib/orderExtras";
-import { orderWithCustomerInclude, serializeOrder } from "@/lib/customers";
-import { ensureWorkflowStages, getStageLabel } from "@/lib/workflow";
+import { orderWithTeamInclude, serializeOrder } from "@/lib/customers";
+import { getAppShellOrderStats, getCachedWorkflowStages } from "@/lib/appShellData";
+import { getStageLabel } from "@/lib/workflow";
 import OrderDetailClient from "./OrderDetailClient";
 import { OrderDetailData } from "@/lib/types";
 
@@ -13,11 +14,12 @@ interface Props {
 }
 
 export default async function OrderDetailPage({ params }: Props) {
-  const stages = await ensureWorkflowStages();
+  const stages = await getCachedWorkflowStages();
+  const orderStats = await getAppShellOrderStats(stages);
 
   const order = await prisma.order.findUnique({
     where: { id: params.id },
-    include: orderWithCustomerInclude,
+    include: orderWithTeamInclude,
   });
   if (!order) notFound();
 
@@ -83,5 +85,5 @@ export default async function OrderDetailPage({ params }: Props) {
     })),
   };
 
-  return <OrderDetailClient data={data} stages={stages} />;
+  return <OrderDetailClient data={data} stages={stages} orderStats={orderStats} />;
 }

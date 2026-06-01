@@ -4,11 +4,10 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 
 interface Props {
-  customerName?: string;
   onClose: () => void;
 }
 
-export default function PaymentRequiredModal({ customerName, onClose }: Props) {
+export default function DeadlineRequiredModal({ onClose }: Props) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -27,33 +26,34 @@ export default function PaymentRequiredModal({ customerName, onClose }: Props) {
 
   return createPortal(
     <div
-      className="modal-overlay fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6"
+      className="modal-overlay fixed inset-0 z-[110] flex items-center justify-center p-4 sm:p-6"
       onClick={onClose}
     >
       <div
         className="modal-panel w-full max-w-md"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
-        aria-labelledby="payment-required-title"
+        aria-labelledby="deadline-required-title"
       >
         <div className="modal-header px-6 pb-5 pt-6 sm:px-7">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-amber-500/90 dark:text-amber-300/90">
-                Payment required
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-violet-500/90 dark:text-violet-300/90">
+                One quick thing
               </p>
               <h2
-                id="payment-required-title"
+                id="deadline-required-title"
                 className="mt-1 text-xl font-extrabold tracking-tight"
               >
-                {customerName ? `${customerName}` : "Cannot complete order"}
+                When should this order be completed?
               </h2>
               <p className="mt-3 text-sm text-muted">
-                Check the Payment received box on the order card first, then drag it
-                to Completed.
+                Every job needs a completion date — it&apos;s how you keep customers
+                happy and stay out of last-minute scramble mode.
               </p>
               <p className="mt-2 text-sm text-muted">
-                You can also confirm payment from the order detail page.
+                Pick when the order should be done and you&apos;re good to go. Your
+                future self will thank you!
               </p>
             </div>
             <button
@@ -71,9 +71,9 @@ export default function PaymentRequiredModal({ customerName, onClose }: Props) {
           <button
             type="button"
             onClick={onClose}
-            className="btn-primary w-full sm:ml-auto sm:w-auto sm:min-w-[120px]"
+            className="btn-primary w-full sm:ml-auto sm:w-auto sm:min-w-[140px]"
           >
-            Understood
+            Got it — I&apos;ll pick a date
           </button>
         </div>
       </div>

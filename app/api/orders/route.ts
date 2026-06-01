@@ -7,6 +7,7 @@ import {
   serializeOrder,
 } from "@/lib/customers";
 import { initializeOrderExtras } from "@/lib/orderExtras";
+import { isValidOrderDeadline } from "@/lib/order-deadline";
 import {
   ensureWorkflowStages,
   getDefaultStage,
@@ -38,6 +39,13 @@ export async function POST(req: NextRequest) {
     const stages = await ensureWorkflowStages();
     const defaultStage = getDefaultStage(stages);
     const status = normalizeStatusSlug(body.status ?? defaultStage.slug, stages);
+
+    if (!isValidOrderDeadline(body.deadline)) {
+      return NextResponse.json(
+        { error: "Every job needs a completion date." },
+        { status: 400 }
+      );
+    }
 
     const customer = await findOrCreateCustomer(
       body.customerName,

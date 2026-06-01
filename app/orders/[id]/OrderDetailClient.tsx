@@ -26,20 +26,25 @@ import StatusTimeline from "@/components/StatusTimeline";
 import OrderInvoice from "@/components/OrderInvoice";
 import ArchiveNoticeModal from "@/components/ArchiveNoticeModal";
 import PaymentRequiredModal from "@/components/PaymentRequiredModal";
+import PaymentReceivedCheckbox from "@/components/PaymentReceivedCheckbox";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import CustomerSelect, { CustomerFieldValue } from "@/components/CustomerSelect";
 import { formatPhoneDisplay, formatPhoneInput } from "@/lib/messaging";
+import OrderTeamMembers from "@/components/OrderTeamMembers";
 import { formatMoney, lineAmount } from "@/lib/currency";
+
+import type { AppShellOrderStats } from "@/lib/appShellData";
 
 interface Props {
   data: OrderDetailData;
   stages: WorkflowStage[];
+  orderStats: AppShellOrderStats;
 }
 
 type TabId = "details" | "invoice";
 
-export default function OrderDetailClient({ data: initialData, stages }: Props) {
+export default function OrderDetailClient({ data: initialData, stages, orderStats }: Props) {
   const archiveStage = getArchiveStage(stages);
   const paymentStage = getPaymentStage(stages);
   const boardStages = getBoardColumnStages(stages);
@@ -187,13 +192,13 @@ export default function OrderDetailClient({ data: initialData, stages }: Props) 
     }
   }
 
-  async function handleMarkPayment() {
+  async function handleMarkPayment(received: boolean) {
     setError(null);
     try {
       const res = await fetch(`/api/orders/${order.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ paymentReceived: true }),
+        body: JSON.stringify({ paymentReceived: received }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Failed to update payment");
@@ -228,7 +233,7 @@ export default function OrderDetailClient({ data: initialData, stages }: Props) 
   }
 
   return (
-    <AppShell orders={[order]} stages={stages}>
+    <AppShell stages={stages} orderStats={orderStats}>
       <Link
         href={order.status === archiveStage.slug ? "/archive" : "/"}
         className="mb-5 inline-flex items-center gap-1 text-sm font-semibold text-gray-500 transition-colors hover:text-violet-600 dark:text-gray-400 dark:hover:text-violet-300"
@@ -337,22 +342,17 @@ export default function OrderDetailClient({ data: initialData, stages }: Props) 
                       }}
                     >
                       <p className="section-title mb-3">Payment</p>
-                      {order.paymentReceived ? (
-                        <p className="text-sm font-semibold text-emerald-600 dark:text-emerald-300">
-                          ✓ Payment received — move to Completed to archive
+                      <PaymentReceivedCheckbox
+                        checked={order.paymentReceived}
+                        onChange={handleMarkPayment}
+                      />
+                      {order.paymentReceived && (
+                        <p className="mt-3 text-sm font-semibold text-emerald-600 dark:text-emerald-300">
+                          Move to Completed to archive this order
                           {order.paymentReceivedAt
                             ? ` · ${formatDate(order.paymentReceivedAt)}`
                             : ""}
                         </p>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={handleMarkPayment}
-                          className="rounded-lg border px-3 py-2 text-xs font-bold text-amber-700 transition-colors hover:bg-amber-500/10 dark:text-amber-300"
-                          style={{ borderColor: "var(--dm-border)" }}
-                        >
-                          Payment received
-                        </button>
                       )}
                     </div>
                   )}
@@ -439,7 +439,7 @@ export default function OrderDetailClient({ data: initialData, stages }: Props) 
                           />
                         </Field>
                       </div>
-                      <Field label="Due Date">
+                      <Field label="Complete by">
                         <input
                           type="date"
                           value={form.deadline}
@@ -531,7 +531,7 @@ export default function OrderDetailClient({ data: initialData, stages }: Props) 
                       />
                       <DetailItem label="Color / Details" value={order.color ?? "—"} />
                       <DetailItem
-                        label="Due Date"
+                        label="Complete by"
                         value={formatDate(order.deadline)}
                         highlight={
                           !!order.deadline &&
@@ -662,6 +662,10 @@ export default function OrderDetailClient({ data: initialData, stages }: Props) 
         </div>
 
         <div className="space-y-6 print:hidden">
+          <OrderTeamMembers
+            orderId={order.id}
+            initialMembers={order.teamMembers ?? []}
+          />
           <StatusTimeline history={statusHistory} />
         </div>
       </div>

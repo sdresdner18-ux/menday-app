@@ -15,7 +15,7 @@ export default function PhoneInput({
   value,
   onChange,
   className = "input-field",
-  placeholder = "050-123-4567",
+  placeholder = "(555) 123-4567",
   ...props
 }: PhoneInputProps) {
   const invalid = !!value.trim() && !isValidPhone(value);
@@ -32,8 +32,8 @@ export default function PhoneInput({
       className={className}
       placeholder={placeholder}
       aria-invalid={invalid || undefined}
-      pattern="0[0-9]{2}-[0-9]{3}-[0-9]{4}"
-      title="Enter a 10-digit mobile number, e.g. 050-123-4567"
+      pattern="\\([0-9]{3}\\) [0-9]{3}-[0-9]{4}"
+      title="Enter a 10-digit US phone number, e.g. (555) 123-4567"
     />
   );
 }

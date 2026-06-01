@@ -1,39 +1,24 @@
 export const dynamic = "force-dynamic";
 
-import { prisma } from "@/lib/prisma";
-import { Order, WorkflowStage } from "@/lib/types";
 import AppShell from "@/components/AppShell";
 import WorkflowEditor from "@/components/WorkflowEditor";
-import { orderWithCustomerInclude, serializeOrder } from "@/lib/customers";
-import { ensureWorkflowStages } from "@/lib/workflow";
-
-async function getPageData(): Promise<{
-  stages: WorkflowStage[];
-  orders: Order[];
-}> {
-  try {
-    const [stages, ordersRaw] = await Promise.all([
-      ensureWorkflowStages(),
-      prisma.order.findMany({
-        include: orderWithCustomerInclude,
-        orderBy: { updatedAt: "desc" },
-      }),
-    ]);
-    return {
-      stages,
-      orders: ordersRaw.map(serializeOrder),
-    };
-  } catch {
-    return { stages: [], orders: [] };
-  }
-}
+import { getAppShellContext } from "@/lib/appShellData";
 
 export default async function WorkflowSettingsPage() {
-  const { stages, orders } = await getPageData();
+  let shell = {
+    stages: [] as Awaited<ReturnType<typeof getAppShellContext>>["stages"],
+    orderStats: { active: 0, archived: 0, urgent: 0, waitingFiles: 0 },
+  };
+
+  try {
+    shell = await getAppShellContext();
+  } catch (error) {
+    console.error("Workflow settings page error:", error);
+  }
 
   return (
-    <AppShell orders={orders} stages={stages}>
-      <WorkflowEditor initialStages={stages} />
+    <AppShell stages={shell.stages} orderStats={shell.orderStats}>
+      <WorkflowEditor initialStages={shell.stages} />
     </AppShell>
   );
 }

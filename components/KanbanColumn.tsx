@@ -2,14 +2,14 @@
 import { useDroppable } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { Order, WorkflowStage } from "@/lib/types";
-import { getStageColumnStyle, getStageDotStyle } from "@/lib/workflow-shared";
+import { getStageDotStyle, getStageHardShadow } from "@/lib/workflow-shared";
 import OrderCard from "./OrderCard";
 
 interface Props {
   stage: WorkflowStage;
   orders: Order[];
   paymentStageSlug?: string;
-  onMarkPayment: (orderId: string) => void;
+  onMarkPayment: (orderId: string, received: boolean) => void;
 }
 
 export default function KanbanColumn({
@@ -19,15 +19,17 @@ export default function KanbanColumn({
   onMarkPayment,
 }: Props) {
   const { setNodeRef, isOver } = useDroppable({ id: stage.slug });
+  const shadowOffset = isOver ? 6 : 4;
 
   return (
     <section
-      className={`flex min-h-[220px] flex-col rounded-2xl border border-t-[3px] p-3 transition-all duration-smooth ease-smooth-out
-        ${isOver ? "border-violet-500/40 ring-2 ring-violet-500/20" : ""}`}
+      className={`flex min-h-[220px] flex-col rounded-2xl border p-3 transition-[transform,box-shadow] duration-150 ease-out ${
+        isOver ? "-translate-x-px -translate-y-px" : ""
+      }`}
       style={{
         borderColor: "var(--dm-border)",
         background: "color-mix(in srgb, var(--dm-inset) 88%, transparent)",
-        ...getStageColumnStyle(stage.color),
+        boxShadow: getStageHardShadow(stage.color, shadowOffset),
       }}
     >
       <div
@@ -71,7 +73,7 @@ export default function KanbanColumn({
             style={{ borderColor: "var(--dm-border)" }}
           >
             {stage.stageType === "Archive"
-              ? "Drop here to archive order"
+              ? "Drop paid orders here to complete"
               : "Drop orders here"}
           </div>
         )}

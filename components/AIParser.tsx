@@ -1,9 +1,11 @@
 "use client";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { ParsedOrder, PROJECT_TYPES, PRIORITIES } from "@/lib/types";
 import { useRouter } from "next/navigation";
 import CustomerSelect, { CustomerFieldValue } from "@/components/CustomerSelect";
+import DeadlineRequiredModal from "@/components/DeadlineRequiredModal";
 import { formatPhoneInput } from "@/lib/messaging";
+import { isValidOrderDeadline } from "@/lib/order-deadline";
 
 export default function AIParser() {
   const [message, setMessage] = useState("");
@@ -11,6 +13,8 @@ export default function AIParser() {
   const [parsed, setParsed] = useState<ParsedOrder | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
+  const [showDeadlineRequired, setShowDeadlineRequired] = useState(false);
+  const deadlineRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
   async function handleParse() {
@@ -42,6 +46,10 @@ export default function AIParser() {
 
   async function handleCreate() {
     if (!parsed) return;
+    if (!isValidOrderDeadline(parsed.deadline)) {
+      setShowDeadlineRequired(true);
+      return;
+    }
     setCreating(true);
     try {
       const res = await fetch("/api/orders", {
@@ -49,7 +57,8 @@ export default function AIParser() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(parsed),
       });
-      if (!res.ok) throw new Error("Failed to create order");
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Failed to create order");
       setParsed(null);
       setMessage("");
       router.refresh();
@@ -66,7 +75,7 @@ export default function AIParser() {
   }
 
   return (
-    <div className="glass-card mb-6 overflow-hidden">
+    <div className="glass-card overflow-hidden">
       <div className="border-b px-5 py-4" style={{ borderColor: "var(--dm-border)" }}>
         <div className="flex items-center gap-3">
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-amber-400 text-sm text-white shadow-glass-sm">
@@ -207,9 +216,11 @@ export default function AIParser() {
                   className="input-field py-1.5"
                 />
               </Field>
-              <Field label="Deadline">
+              <Field label="Complete by" required>
                 <input
+                  ref={deadlineRef}
                   type="date"
+                  required
                   value={parsed.deadline?.split("T")[0] ?? ""}
                   onChange={(e) =>
                     updateParsed("deadline", e.target.value || null)
@@ -277,20 +288,34 @@ export default function AIParser() {
           </div>
         )}
       </div>
+
+      {showDeadlineRequired && (
+        <DeadlineRequiredModal
+          onClose={() => {
+            setShowDeadlineRequired(false);
+            deadlineRef.current?.focus();
+          }}
+        />
+      )}
     </div>
   );
 }
 
 function Field({
   label,
+  required,
   children,
 }: {
   label: string;
+  required?: boolean;
   children: React.ReactNode;
 }) {
   return (
     <div>
-      <label className="label-field">{label}</label>
+      <label className="label-field">
+        {label}
+        {required && <span className="text-violet-500"> *</span>}
+      </label>
       {children}
     </div>
   );

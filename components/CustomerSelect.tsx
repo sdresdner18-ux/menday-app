@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Customer } from "@/lib/types";
+import { formatPhoneDisplay, formatPhoneInput } from "@/lib/messaging";
 import PhoneInput from "./PhoneInput";
 
 export interface CustomerFieldValue {
@@ -66,7 +67,7 @@ export default function CustomerSelect({
     onChange({
       customerId: customer.id,
       customerName: customer.name,
-      customerPhone: customer.phone ?? "",
+      customerPhone: customer.phone ? formatPhoneInput(customer.phone) : "",
     });
   }
 
@@ -86,7 +87,7 @@ export default function CustomerSelect({
           {customers.map((customer) => (
             <option key={customer.id} value={customer.id}>
               {customer.name}
-              {customer.phone ? ` · ${customer.phone}` : ""}
+              {customer.phone ? ` · ${formatPhoneDisplay(customer.phone)}` : ""}
             </option>
           ))}
         </select>

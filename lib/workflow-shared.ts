@@ -230,3 +230,8 @@ export function getStageColumnStyle(color: string): {
 } {
   return { borderTopColor: getStageColorHex(color) };
 }
+
+export function getStageHardShadow(color: string, offset = 4): string {
+  const hex = getStageColorHex(color);
+  return `${offset}px ${offset}px 0 ${hex}`;
+}

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import {
   DndContext,
   DragEndEvent,
@@ -289,16 +290,21 @@ export default function WorkflowEditor({ initialStages }: Props) {
 
   return (
     <div className="mx-auto max-w-4xl">
-      <div className="mb-8">
-        <p className="section-title mb-1">Customize workflow</p>
-        <h2 className="text-2xl font-extrabold tracking-tight">
-          Build the board your business actually uses
-        </h2>
-        <p className="mt-2 max-w-2xl text-sm text-muted">
-          Rename steps, add new ones, or remove stages you do not need. Drag to
-          reorder. Payment and archive steps stay in place so orders still flow
-          correctly.
-        </p>
+      <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p className="section-title mb-1">Customize workflow</p>
+          <h2 className="text-2xl font-extrabold tracking-tight">
+            Build the board your business actually uses
+          </h2>
+          <p className="mt-2 max-w-2xl text-sm text-muted">
+            Rename steps, add new ones, or remove stages you do not need. Drag to
+            reorder. Payment and archive steps stay in place so orders still flow
+            correctly.
+          </p>
+        </div>
+        <Link href="/settings/team" className="btn-secondary text-sm">
+          Team settings
+        </Link>
       </div>
 
       <div

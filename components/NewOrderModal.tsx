@@ -1,10 +1,12 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { PROJECT_TYPES, PRIORITIES, WorkflowStage } from "@/lib/types";
 import { getCreateOrderStages, getDefaultStage } from "@/lib/workflow-shared";
 import { useRouter } from "next/navigation";
 import CustomerSelect, { CustomerFieldValue } from "@/components/CustomerSelect";
+import DeadlineRequiredModal from "@/components/DeadlineRequiredModal";
+import { isValidOrderDeadline } from "@/lib/order-deadline";
 
 const INITIAL_FORM = {
   customerId: null as string | null,
@@ -22,13 +24,21 @@ const INITIAL_FORM = {
   status: "new",
 };
 
-export default function NewOrderModal({ stages }: { stages: WorkflowStage[] }) {
+export default function NewOrderModal({
+  stages,
+  className,
+}: {
+  stages: WorkflowStage[];
+  className?: string;
+}) {
   const defaultStage = getDefaultStage(stages);
   const createStages = getCreateOrderStages(stages);
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showDeadlineRequired, setShowDeadlineRequired] = useState(false);
+  const deadlineRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
   const [form, setForm] = useState({
     ...INITIAL_FORM,
@@ -60,6 +70,10 @@ export default function NewOrderModal({ stages }: { stages: WorkflowStage[] }) {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!form.customerName.trim()) return;
+    if (!isValidOrderDeadline(form.deadline)) {
+      setShowDeadlineRequired(true);
+      return;
+    }
     setSaving(true);
     setError(null);
     try {
@@ -78,7 +92,8 @@ export default function NewOrderModal({ stages }: { stages: WorkflowStage[] }) {
           customerId: form.customerId,
         }),
       });
-      if (!res.ok) throw new Error("Failed to create order");
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Failed to create order");
       closeModal();
       setForm({ ...INITIAL_FORM, status: defaultStage.slug });
       router.refresh();
@@ -91,7 +106,10 @@ export default function NewOrderModal({ stages }: { stages: WorkflowStage[] }) {
 
   return (
     <>
-      <button onClick={() => setOpen(true)} className="btn-secondary">
+      <button
+        onClick={() => setOpen(true)}
+        className={className ?? "btn-secondary"}
+      >
         <span className="text-lg leading-none text-violet-500">+</span> New Order
       </button>
 
@@ -198,9 +216,11 @@ export default function NewOrderModal({ stages }: { stages: WorkflowStage[] }) {
                       />
                     </Field>
 
-                    <Field label="Due date">
+                    <Field label="Complete by" required>
                       <input
+                        ref={deadlineRef}
                         type="date"
+                        required
                         value={form.deadline}
                         onChange={(e) => update("deadline", e.target.value)}
                         className="input-field"
@@ -277,6 +297,15 @@ export default function NewOrderModal({ stages }: { stages: WorkflowStage[] }) {
           </div>,
           document.body
         )}
+
+      {showDeadlineRequired && (
+        <DeadlineRequiredModal
+          onClose={() => {
+            setShowDeadlineRequired(false);
+            deadlineRef.current?.focus();
+          }}
+        />
+      )}
     </>
   );
 }

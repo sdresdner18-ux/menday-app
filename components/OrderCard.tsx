@@ -4,6 +4,8 @@ import { CSS } from "@dnd-kit/utilities";
 import { Order } from "@/lib/types";
 import PriorityBadge from "./PriorityBadge";
 import Link from "next/link";
+import TeamMemberAvatars from "./TeamMemberAvatars";
+import PaymentReceivedCheckbox from "./PaymentReceivedCheckbox";
 import { formatMoney, lineAmount } from "@/lib/currency";
 
 function formatDate(iso: string | null): string {
@@ -20,7 +22,7 @@ interface Props {
   order: Order;
   isOverlay?: boolean;
   paymentStageSlug?: string;
-  onMarkPayment?: (orderId: string) => void;
+  onMarkPayment?: (orderId: string, received: boolean) => void;
 }
 
 export default function OrderCard({
@@ -36,7 +38,6 @@ export default function OrderCard({
     transform: CSS.Transform.toString(transform),
     transition,
     borderColor: "var(--dm-border)",
-    background: "color-mix(in srgb, var(--dm-surface) 72%, var(--dm-inset))",
   };
 
   const overdue = isOverdue(order.deadline);
@@ -48,7 +49,7 @@ export default function OrderCard({
     <div
       ref={setNodeRef}
       style={dragStyle}
-      className={`select-none overflow-hidden rounded-xl border transition-all duration-smooth ease-smooth-out
+      className={`select-none overflow-hidden rounded-xl border bg-white dark:bg-[var(--dm-surface-2)] transition-all duration-smooth ease-smooth-out
         ${isDragging || isOverlay ? "opacity-90 ring-2 ring-violet-500/35 shadow-glass-md" : "hover:border-violet-500/20"}
       `}
     >
@@ -84,13 +85,18 @@ export default function OrderCard({
 
             <div className="flex items-center justify-between gap-2 text-[11px]">
               <span className={overdue ? "font-semibold text-red-500" : "text-muted"}>
-                {overdue ? "⚠ " : ""}Due {formatDate(order.deadline)}
+                {overdue ? "⚠ " : ""}Complete by {formatDate(order.deadline)}
               </span>
-              {order.filesExpected && (
-                <span className="font-semibold text-amber-600 dark:text-amber-300">
-                  📎 Files
-                </span>
-              )}
+              <div className="flex items-center gap-2">
+                {order.teamMembers && order.teamMembers.length > 0 && (
+                  <TeamMemberAvatars members={order.teamMembers} />
+                )}
+                {order.filesExpected && (
+                  <span className="font-semibold text-amber-600 dark:text-amber-300">
+                    📎 Files
+                  </span>
+                )}
+              </div>
             </div>
           </Link>
 
@@ -98,20 +104,17 @@ export default function OrderCard({
             <div
               className="mt-3 border-t pt-3"
               style={{ borderColor: "var(--dm-border)" }}
+              onClick={(e) => e.preventDefault()}
             >
-              {order.paymentReceived ? (
-                <p className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-300">
-                  ✓ Payment received — drag to archive column
+              <PaymentReceivedCheckbox
+                compact
+                checked={order.paymentReceived}
+                onChange={(checked) => onMarkPayment!(order.id, checked)}
+              />
+              {order.paymentReceived && (
+                <p className="mt-2 text-[10px] font-medium text-emerald-600 dark:text-emerald-300">
+                  Drag to Completed to archive this order
                 </p>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => onMarkPayment(order.id)}
-                  className="w-full rounded-lg border px-2 py-1.5 text-[11px] font-bold text-amber-700 transition-colors hover:bg-amber-500/10 dark:text-amber-300"
-                  style={{ borderColor: "var(--dm-border)" }}
-                >
-                  Payment received
-                </button>
               )}
             </div>
           )}
